@@ -138,5 +138,53 @@ namespace ContourAnalysisNS
             }
             return new Complex(sumA, sumB);
         }
+
+        /// <summary>
+        /// Intercorrelcation function (ICF)
+        /// </summary>
+        public Contour InterCorrelation(Contour c)
+        {
+            int count = Count;
+            Contour result = new Contour(count);
+            for (int i = 0; i < count; i++)
+                result.array[i] = Dot(c, i);
+
+            return result;
+        }
+
+        /// <summary>
+        /// Intercorrelcation function (ICF)
+        /// maxShift - max deviation (left+right)
+        /// </summary>
+        public Contour InterCorrelation(Contour c, int maxShift)
+        {
+            Contour result = new Contour(maxShift);
+            int i = 0;
+            int count = Count;
+            while (i < maxShift / 2)
+            {
+                result.array[i] = Dot(c, i);
+                result.array[maxShift - i - 1] = Dot(c, c.Count - i - 1);
+                i++;
+            }
+            return result;
+        }
+
+        /// <summary>
+        /// Finds max norma item
+        /// </summary>
+        public Complex FindMaxNorma()
+        {
+            double max = 0d;
+            Complex res = default(Complex);
+            foreach (var c in array)
+                if (c.Norma > max)
+                {
+                    max = c.Norma;
+                    res = c;
+                }
+            return res;
+        }
+
     }
 }
