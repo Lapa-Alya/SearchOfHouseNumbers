@@ -186,5 +186,49 @@ namespace ContourAnalysisNS
             return res;
         }
 
+        /// <summary> 
+        /// Autocorrelation function (ACF) 
+        /// </summary> 
+        public unsafe Contour AutoCorrelation(bool normalize)
+        {
+            int count = Count / 2;
+            Contour result = new Contour(count);
+            fixed (Complex* ptr = &result.array[0])
+            {
+                Complex* p = ptr;
+                double maxNormaSq = 0;
+                for (int i = 0; i < count; i++)
+                {
+                    *p = Dot(this, i);
+                    double normaSq = (*p).NormaSquare;
+                    if (normaSq > maxNormaSq)
+                        maxNormaSq = normaSq;
+                    p++;
+                }
+                if (normalize)
+                {
+                    maxNormaSq = Math.Sqrt(maxNormaSq);
+                    p = ptr;
+                    for (int i = 0; i < count; i++)
+                    {
+                        *p = new Complex((*p).a / maxNormaSq, (*p).b / maxNormaSq);
+                        p++;
+                    }
+                }
+            }
+
+            return result;
+        }
+
+
+        public void Normalize()
+        {
+            //find max norma 
+            double max = FindMaxNorma().Norma;
+            //normalize 
+            if (max > double.Epsilon)
+                Scale(1 / max);
+        }
+
     }
 }
