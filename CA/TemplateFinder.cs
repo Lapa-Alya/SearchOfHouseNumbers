@@ -1,3 +1,4 @@
+
 using System;
 
 namespace ContourAnalysisNS
@@ -35,7 +36,7 @@ namespace ContourAnalysisNS
                     if (r < minACF)
                         continue;
                 }
-		if (checkICF)
+                if (checkICF)
                 {
                     interCorr = template.contour.InterCorrelation(sample.contour).FindMaxNorma();
                     r = interCorr.Norma / (template.contourNorma * sample.contourNorma);
@@ -54,7 +55,7 @@ namespace ContourAnalysisNS
                     angle = interCorr.Angle;
                 }
             }
-	    //ignore antipatterns
+            //ignore antipatterns
             if (foundTemplate != null && foundTemplate.name == antiPatternName)
                 foundTemplate = null;
             //
@@ -64,6 +65,7 @@ namespace ContourAnalysisNS
                 return null;
         }
     }
+
     public class FoundTemplateDesc
     {
         public double rate;
