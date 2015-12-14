@@ -35,7 +35,15 @@ namespace ContourAnalysisNS
                     if (r < minACF)
                         continue;
                 }
-                
+		if (checkICF)
+                {
+                    interCorr = template.contour.InterCorrelation(sample.contour).FindMaxNorma();
+                    r = interCorr.Norma / (template.contourNorma * sample.contourNorma);
+                    if (r < minICF)
+                        continue;
+                    if (Math.Abs(interCorr.Angle) > maxRotateAngle)
+                        continue;
+                }
                 if (template.preferredAngleNoMore90 && Math.Abs(interCorr.Angle) >= Math.PI / 2)
                     continue;//unsuitable angle
                 //find max rate
@@ -46,10 +54,29 @@ namespace ContourAnalysisNS
                     angle = interCorr.Angle;
                 }
             }
+	    //ignore antipatterns
+            if (foundTemplate != null && foundTemplate.name == antiPatternName)
+                foundTemplate = null;
+            //
             if (foundTemplate != null)
                 return new FoundTemplateDesc() { template = foundTemplate, rate = rate, sample = sample, angle = angle };
             else
                 return null;
+        }
+    }
+    public class FoundTemplateDesc
+    {
+        public double rate;
+        public Template template;
+        public Template sample;
+        public double angle;
+
+        public double scale
+        {
+            get
+            {
+                return Math.Sqrt(sample.sourceArea / template.sourceArea);
+            }
         }
     }
 }
