@@ -1,3 +1,4 @@
+
 using System;
 using System.Collections.Generic;
 using System.Drawing;
@@ -12,7 +13,7 @@ namespace ContourAnalysisNS
         public Contour autoCorr;
         public Point startPoint;
         public bool preferredAngleNoMore90 = false;
-
+        
         public int autoCorrDescriptor1;
         public int autoCorrDescriptor2;
         public int autoCorrDescriptor3;
@@ -53,7 +54,7 @@ namespace ContourAnalysisNS
             for (int i = 0; i < count; i++)
             {
                 double v = autoCorr[i].Norma;
-                int j = 4 * i / count;
+                int j = 4*i/count;
 
                 sum1 += filter1[j] * v;
                 sum2 += filter2[j] * v;
@@ -66,8 +67,8 @@ namespace ContourAnalysisNS
             autoCorrDescriptor3 = (int)(100 * sum3 / count);
             autoCorrDescriptor4 = (int)(100 * sum4 / count);
         }
-    }
-    public void Draw(Graphics gr, Rectangle rect)
+
+        public void Draw(Graphics gr, Rectangle rect)
         {
             gr.DrawRectangle(Pens.SteelBlue, rect);
             rect = new Rectangle(rect.Left, rect.Top, rect.Width - 24, rect.Height);
@@ -114,9 +115,34 @@ namespace ContourAnalysisNS
             catch(OverflowException)
             { ;}
 
-            
+            Pen redPen = new Pen(Color.FromArgb(100, Color.Black));
+            for (int i = 0; i <= 10; i++)
+            {
+                gr.DrawLine(redPen, r.X, r.Bottom - i * r.Height / 10, r.X + r.Width, r.Bottom - i * r.Height / 10);
+            }
 
-            
+            //descriptors
+            {
+                int x = rect.Right;
+                int y = r.Bottom - r.Height/2;
+                gr.DrawLine(Pens.Gray, x, y, x+23, y);
+                if (autoCorrDescriptor1 < int.MaxValue && autoCorrDescriptor1 > int.MinValue)
+                {
+                    gr.FillRectangle(Brushes.Red, x, y - (autoCorrDescriptor1 < 0 ? 0 : autoCorrDescriptor1 * r.Height / 100), 5, Math.Abs(autoCorrDescriptor1) * r.Height / 100);
+                    gr.FillRectangle(Brushes.Red, x + 6, y - (autoCorrDescriptor2 < 0 ? 0 : autoCorrDescriptor2 * r.Height / 100), 5, Math.Abs(autoCorrDescriptor2) * r.Height / 100);
+                    gr.FillRectangle(Brushes.Red, x + 12, y - (autoCorrDescriptor3 < 0 ? 0 : autoCorrDescriptor3 * r.Height / 100), 5, Math.Abs(autoCorrDescriptor3) * r.Height / 100);
+                    gr.FillRectangle(Brushes.Red, x + 18, y - (autoCorrDescriptor4 < 0 ? 0 : autoCorrDescriptor4 * r.Height / 100), 5, Math.Abs(autoCorrDescriptor4) * r.Height / 100);
+                }
             }
         }
+    }
+
+    /// <summary>
+    /// List of templates
+    /// </summary>
+    [Serializable]
+    public class Templates : List<Template>
+    {
+        public int templateSize = 30;
+    }
 }
