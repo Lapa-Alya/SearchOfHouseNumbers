@@ -36,7 +36,7 @@ namespace ContourAnalysisDemo
         {
             try
             {
-                using (FileStream fs = new FileStream(fileName, FileMode.Open))
+                using(FileStream fs = new FileStream(fileName, FileMode.Open))
                     processor.templates = (Templates)new BinaryFormatter().Deserialize(fs);
             }
             catch (Exception ex)
@@ -70,7 +70,7 @@ namespace ContourAnalysisDemo
                 //
                 processor.ProcessImage(frame);
                 //
-                if (cbShowBinarized.Checked)
+                if(cbShowBinarized.Checked)
                     ibMain.Image = processor.binarizedFrame;
                 else
                     ibMain.Image = frame;
@@ -92,33 +92,49 @@ namespace ContourAnalysisDemo
             Brush foreBrush = new SolidBrush(Color.FromArgb(255, 255, 255, 255));
             Pen borderPen = new Pen(Color.FromArgb(150, 0, 255, 0));
             //
-            if (cbShowContours.Checked)
-                foreach (var contour in processor.contours)
-                    if (contour.Total > 1)
-                        e.Graphics.DrawLines(Pens.Red, contour.ToArray());
+            if(cbShowContours.Checked)
+            foreach (var contour in processor.contours)
+                if(contour.Total>1)
+                e.Graphics.DrawLines(Pens.Red, contour.ToArray());
             //
             lock (processor.foundTemplates)
             foreach (FoundTemplateDesc found in processor.foundTemplates)
+            {
+                if (found.template.name.EndsWith(".png") || found.template.name.EndsWith(".jpg"))
                 {
-                    if (found.template.name.EndsWith(".png") || found.template.name.EndsWith(".jpg"))
-                    {
-                        MessageBox.Show("show");
-                        DrawAugmentedReality(found, e.Graphics);
-                        continue;
-                    }
-
-                    Rectangle foundRect = found.sample.contour.SourceBoundingRect;
-                    Point p1 = new Point((foundRect.Left + foundRect.Right) / 2, foundRect.Top);
-                    string text = found.template.name;
-                    e.Graphics.DrawRectangle(borderPen, foundRect);
-                    e.Graphics.DrawString(text, font, bgBrush, new PointF(p1.X + 1 - font.Height / 3, p1.Y + 1 - font.Height));
-                    e.Graphics.DrawString(text, font, foreBrush, new PointF(p1.X - font.Height / 3, p1.Y - font.Height));
+                    MessageBox.Show("show");
+                    DrawAugmentedReality(found, e.Graphics);
+                    continue;
                 }
+
+                Rectangle foundRect = found.sample.contour.SourceBoundingRect;
+                Point p1 = new Point((foundRect.Left + foundRect.Right)/2, foundRect.Top);
+                string text = found.template.name;
+                e.Graphics.DrawRectangle(borderPen, foundRect);
+                e.Graphics.DrawString(text, font, bgBrush, new PointF(p1.X + 1 - font.Height/3, p1.Y + 1 - font.Height));
+                e.Graphics.DrawString(text, font, foreBrush, new PointF(p1.X - font.Height/3, p1.Y - font.Height));
+            }
         }
 
         private void DrawAugmentedReality(FoundTemplateDesc found, Graphics gr)
         {
-           
+            string fileName = Path.GetDirectoryName(templateFile) + "\\" + found.template.name;
+            if (!AugmentedRealityImages.ContainsKey(fileName))
+            {
+                if (!File.Exists(fileName)) return;
+                AugmentedRealityImages[fileName] = Image.FromFile(fileName);
+            }
+            Image img = AugmentedRealityImages[fileName];
+            Point p = found.sample.contour.SourceBoundingRect.Center();
+            var state = gr.Save();
+            gr.TranslateTransform(p.X, p.Y);
+            
+            MessageBox.Show((180f * found.angle / Math.PI).ToString());
+            
+            gr.RotateTransform((float)(180f * found.angle / Math.PI));
+            gr.ScaleTransform((float)(found.scale), (float)(found.scale));
+            gr.DrawImage(img, new Point(-img.Width/2, -img.Height/2));
+            gr.Restore(state);
         }
 
         private void cbAutoContrast_CheckedChanged(object sender, EventArgs e)
@@ -133,7 +149,7 @@ namespace ContourAnalysisDemo
                 processor.equalizeHist = cbAutoContrast.Checked;
                 processor.blur = cbBlur.Checked;
             }
-            catch (Exception ex)
+            catch(Exception ex)
             {
                 MessageBox.Show(ex.Message);
             }
@@ -141,12 +157,22 @@ namespace ContourAnalysisDemo
 
         private void btLoadImage_Click(object sender, EventArgs e)
         {
-            
+            OpenFileDialog ofd = new OpenFileDialog();
+            ofd.Filter = "Image|*.bmp;*.png;*.jpg;*.jpeg";
+            if (ofd.ShowDialog(this) == System.Windows.Forms.DialogResult.OK)
+                try
+                {
+                    frame = new Image<Bgr, byte>((Bitmap)Bitmap.FromFile(ofd.FileName));
+                }
+                catch (Exception ex)
+                {
+                    MessageBox.Show(ex.Message);
+                }
         }
 
         private void btCreateTemplate_Click(object sender, EventArgs e)
         {
-            if (frame != null)
+            if(frame!=null)
                 new ShowContoursForm(processor.templates, processor.samples, frame).ShowDialog();
         }
 
@@ -221,3 +247,4 @@ namespace ContourAnalysisDemo
 
     }
 }
+
